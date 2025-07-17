@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Upload, FileText, CheckCircle, X, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const UploadPage = () => {
   const [dragActive, setDragActive] = useState(false);
@@ -13,6 +13,7 @@ const UploadPage = () => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -84,6 +85,8 @@ const UploadPage = () => {
         title: "Upload successful!",
         description: "Your resume has been uploaded and processed",
       });
+      // Redirect to dashboard after successful upload
+      navigate('/dashboard');
     }, 2000);
   };
 
