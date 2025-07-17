@@ -74,21 +74,45 @@ const UploadPage = () => {
   };
 
   const handleUpload = async () => {
-    if (!uploadedFile) return;
+  if (!uploadedFile) return;
 
-    setIsUploading(true);
-    
-    // Simulate upload process
-    setTimeout(() => {
-      setIsUploading(false);
-      toast({
-        title: "Upload successful!",
-        description: "Your resume has been uploaded and processed",
-      });
-      // Redirect to dashboard after successful upload
-      navigate('/dashboard');
-    }, 2000);
-  };
+  const formData = new FormData();
+  formData.append("resume", uploadedFile);
+
+  setIsUploading(true);
+
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
+      method: "POST",
+      body: formData,
+      credentials: 'include',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data?.message || "Upload failed");
+    }
+
+    toast({
+      title: "Upload successful!",
+      description: data?.message || "Your resume has been processed.",
+      duration: 2000,
+    });
+
+    setUploadedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  } catch (error: any) {
+    toast({
+      title: "Upload failed",
+      description: error.message || "Something went wrong during upload.",
+      variant: "destructive",
+      duration: 3000,
+    });
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   const removeFile = () => {
     setUploadedFile(null);

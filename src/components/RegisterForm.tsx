@@ -24,10 +24,9 @@ export const RegisterForm = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
     if (!formData.name || !formData.email || !formData.password) {
       toast({
         title: "Missing information",
@@ -41,25 +40,47 @@ export const RegisterForm = () => {
       toast({
         title: "Password too short",
         description: "Password must be at least 6 characters long.",
-        variant: "destructive"
+        duration: 3000
       });
       return;
     }
 
-    // Reset form
-    setFormData({ name: "", email: "", password: "" });
-    
-    toast({
-      title: "Account created successfully!",
-      description: "Welcome to AI Tutor. Redirecting to upload your resume..."
+    try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials:'include',
+      body: JSON.stringify(formData),
     });
 
-    // Redirect to upload page after a short delay
-    setTimeout(() => {
-      navigate('/upload');
-    }, 1500);
-  };
+    const result = await response.json();
 
+    if (!response.ok) {
+      throw new Error(result.message || "Registration failed");
+    }
+
+    toast({
+      title: "Account created successfully!",
+      description: "Welcome to AI Tutor. Redirecting to upload your resume...",
+      variant: "destructive",
+      duration: 2000 
+    });
+
+    setFormData({ name: "", email: "", password: "" });
+
+    setTimeout(() => {
+      navigate("/upload");
+    }, 1500);
+  } catch (error: any) {
+    toast({
+      title: "Registration failed",
+      description: error.message || "Something went wrong. Please try again.",
+      variant: "destructive",
+    });
+  }
+};
   const handleGoogleSignUp = () => {
     toast({
       title: "Google Sign-up",

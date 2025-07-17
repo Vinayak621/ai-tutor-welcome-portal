@@ -70,11 +70,11 @@ export const HeroSection = () => {
 
       {/* Large hero image - desktop only */}
       <div className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-80 opacity-60">
-        <img 
+        {/* <img 
           src={heroImage} 
           alt="AI Tutor Technology" 
           className="w-full h-full object-cover rounded-l-2xl"
-        />
+        /> */}
       </div>
     </div>
   );
