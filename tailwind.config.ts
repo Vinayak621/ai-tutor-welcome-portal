@@ -75,6 +75,10 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			keyframes: {
+				'slide-in-left': {
+				'0%': { transform: 'translateX(-100%)', opacity: '0' },
+				'100%': { transform: 'translateX(0)', opacity: '1' },
+			},
 				'accordion-down': {
 					from: {
 						height: '0'
@@ -136,7 +140,8 @@ export default {
 				'fade-in': 'fade-in 0.6s ease-out',
 				'slide-in-right': 'slide-in-right 0.6s ease-out',
 				'neural-pulse': 'neural-pulse 2s ease-in-out infinite',
-				'gradient-shift': 'gradient-shift 3s ease-in-out infinite'
+				'gradient-shift': 'gradient-shift 3s ease-in-out infinite',
+				'slide-in-left': 'slide-in-left 1s ease-out forwards',
 			},
 			backgroundImage: {
 				'gradient-primary': 'var(--gradient-primary)',

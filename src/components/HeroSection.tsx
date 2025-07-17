@@ -13,7 +13,7 @@ export const HeroSection = () => {
           <div className="p-3 rounded-xl bg-gradient-primary shadow-glow">
             <Brain className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-hero bg-clip-text text-transparent animate-fade-in">
+          <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-hero bg-clip-text text-transparent animate-bounce">
             AI TUTOR
           </h1>
         </div>

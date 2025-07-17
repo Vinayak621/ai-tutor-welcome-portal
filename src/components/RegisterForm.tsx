@@ -64,7 +64,6 @@ export const RegisterForm = () => {
     toast({
       title: "Account created successfully!",
       description: "Welcome to AI Tutor. Redirecting to upload your resume...",
-      variant: "destructive",
       duration: 2000 
     });
 

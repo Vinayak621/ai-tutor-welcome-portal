@@ -101,6 +101,7 @@ const UploadPage = () => {
     });
 
     setUploadedFile(null);
+    navigate("/dashboard");
     if (fileInputRef.current) fileInputRef.current.value = '';
   } catch (error: any) {
     toast({
