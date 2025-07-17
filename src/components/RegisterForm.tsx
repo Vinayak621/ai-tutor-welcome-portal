@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Eye, EyeOff, Mail, User, Lock, Chrome } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -14,6 +15,7 @@ export const RegisterForm = () => {
     password: ""
   });
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -44,14 +46,18 @@ export const RegisterForm = () => {
       return;
     }
 
-    // For now, just show success message
-    toast({
-      title: "Registration successful!",
-      description: "Welcome to AI Tutor! Please check your email to verify your account.",
-    });
-    
     // Reset form
     setFormData({ name: "", email: "", password: "" });
+    
+    toast({
+      title: "Account created successfully!",
+      description: "Welcome to AI Tutor. Redirecting to upload your resume..."
+    });
+
+    // Redirect to upload page after a short delay
+    setTimeout(() => {
+      navigate('/upload');
+    }, 1500);
   };
 
   const handleGoogleSignUp = () => {
