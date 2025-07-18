@@ -8,8 +8,7 @@ const Interview = () => {
   const navigate = useNavigate();
 
   const handleTextChat = () => {
-    // Navigate to text-based interview
-    console.log('Starting text chat interview...');
+    navigate("/text-interview");
   };
 
   const handleVoiceChat = () => {
