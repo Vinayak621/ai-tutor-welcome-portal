@@ -113,7 +113,7 @@ export const RegisterForm = () => {
   // });
 
   const handleGoogleSignUp = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`;
+    window.location.href = `${import.meta.env.VITE_API_GOOGLE_URL}/api/auth/google`;
   }
 
   return (
