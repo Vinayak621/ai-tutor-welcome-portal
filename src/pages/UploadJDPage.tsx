@@ -1,25 +1,29 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
-import { setResumeId, clearResumeId } from '@/store/resumeSlice';
+import { setJobId } from '@/store/resumeSlice';
+import { pollJobStatus } from '@/utils/pollStatusHelper';
+import { setAnalysis } from '@/store/jdAnalysisSlice';
 
-interface UploadPageProps {
+interface UploadJDPageProps {
   onUploadComplete?: (file: File) => void;
 }
 
-const UploadPage = ({ onUploadComplete }: UploadPageProps) => {
+const UploadJDPage = ({ onUploadComplete }: UploadJDPageProps) => {
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [id,setId] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
-   const dispatch = useDispatch();
+  const dispatch = useDispatch();
+
+  const resumeId = useSelector((state: RootState) => state.resume.resumeId);
+  const jobId = useSelector((state: RootState) => state.resume.jobId);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -38,8 +42,8 @@ const UploadPage = ({ onUploadComplete }: UploadPageProps) => {
 
     const files = Array.from(e.dataTransfer.files);
     const file = files[0];
-    
-    if (file && (file.type === 'application/pdf' || file.type.includes('document'))) {
+
+    if (file && (file.type === 'application/pdf' || file.type.includes('document')|| file.type==='text/plain')) {
       handleFile(file);
     } else {
       toast({
@@ -58,35 +62,85 @@ const UploadPage = ({ onUploadComplete }: UploadPageProps) => {
   };
 
   const handleFile = async (file: File) => {
+  if (!resumeId) {
+    toast({
+      title: "Resume not uploaded",
+      description: "Please upload your resume before uploading a job description.",
+      variant: "destructive",
+    });
+    return;
+  }
+
   setUploading(true);
 
   const formData = new FormData();
-  formData.append("resume", file);
+  formData.append("jobDescription", file);
+  formData.append("resumeId", resumeId);
 
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/upload-jd`, {
       method: "POST",
       body: formData,
       credentials: "include",
     });
 
-    if (!response.ok) {
-      throw new Error("Upload failed");
-    }
+    if (!response.ok) throw new Error("Upload failed");
 
     const data = await response.json();
+
+    const { jobId, jdId } = data;
+
+    if (!jobId || !jdId) throw new Error("Missing jobId or jdId in response");
+
+    dispatch(setJobId(jobId));
     setUploadedFile(file);
-    setId(data.resumeId)
-    dispatch(setResumeId(data.resumeId));
 
-    toast({
-      title: "Resume uploaded successfully!",
-      description: "Ready to start your interview process.",
-      duration: 2000,
-    });
+    
+    const jobCompleted = await pollJobStatus(jobId);
 
-    onUploadComplete?.(file);
+    if (jobCompleted) {
+      const scoreRes = await fetch(`${import.meta.env.VITE_API_URL}/api/confidence-score`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ resumeId, jdId }),
+      });
 
+      if (!scoreRes.ok) {
+        navigate("/dashboard");
+        throw new Error("Failed to generate confidence score");
+    
+      }
+
+      const scoreResData = await scoreRes.json();
+
+      dispatch(
+      setAnalysis({
+        resumeId: scoreResData.resumeId,
+        jdId: scoreResData.jdId,
+        confidenceScore: scoreResData.confidenceScore,
+        goodVerdict: scoreResData.goodVerdict,
+        bulletinPoints: scoreResData.bulletinPoints,
+      })
+    );
+
+      toast({
+        title: "JD processed and score generated!",
+        description: "Your interview prep is ready.",
+        duration: 2000,
+      });
+
+      onUploadComplete?.(file);
+      navigate("/confidence-score");
+    } else {
+      toast({
+        title: "Processing timeout",
+        description: "JD processing took too long. Try again later.",
+        variant: "destructive",
+      });
+    }
   } catch (err) {
     console.error("Upload error:", err);
     toast({
@@ -99,10 +153,9 @@ const UploadPage = ({ onUploadComplete }: UploadPageProps) => {
   }
 };
 
-
   const proceedToInterview = () => {
-    if (uploadedFile) {
-      const encoded = encodeURIComponent(id);
+    if (uploadedFile && resumeId) {
+      const encoded = encodeURIComponent(resumeId);
       navigate(`/interview?resumeId=${encoded}`);
     }
   };
@@ -111,10 +164,10 @@ const UploadPage = ({ onUploadComplete }: UploadPageProps) => {
     <div className="w-full max-w-2xl mx-auto p-6 space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-          Upload Your Resume
+          Upload Target Job Description
         </h2>
         <p className="text-muted-foreground">
-          Upload your resume to get started with AI-powered interview practice
+          Help us tailor your interview based on your target job role
         </p>
       </div>
 
@@ -138,13 +191,13 @@ const UploadPage = ({ onUploadComplete }: UploadPageProps) => {
               onChange={handleFileInput}
               disabled={uploading || !!uploadedFile}
             />
-            
+
             <div className="text-center space-y-4">
               {uploading ? (
                 <>
                   <Upload className="h-12 w-12 mx-auto text-primary animate-spin" />
                   <div className="space-y-2">
-                    <p className="text-foreground font-medium">Uploading your resume...</p>
+                    <p className="text-foreground font-medium">Uploading JD...</p>
                     <p className="text-sm text-muted-foreground">Please wait while we process your file</p>
                   </div>
                 </>
@@ -152,7 +205,7 @@ const UploadPage = ({ onUploadComplete }: UploadPageProps) => {
                 <>
                   <CheckCircle className="h-12 w-12 mx-auto text-tech-green" />
                   <div className="space-y-2">
-                    <p className="text-foreground font-medium">Resume uploaded successfully!</p>
+                    <p className="text-foreground font-medium">Job Description uploaded!</p>
                     <p className="text-sm text-muted-foreground">{uploadedFile.name}</p>
                   </div>
                 </>
@@ -161,7 +214,7 @@ const UploadPage = ({ onUploadComplete }: UploadPageProps) => {
                   <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
                   <div className="space-y-2">
                     <p className="text-foreground font-medium">
-                      Drag and drop your resume here
+                      Drag and drop your JD here
                     </p>
                     <p className="text-sm text-muted-foreground">
                       or click to browse files
@@ -175,7 +228,7 @@ const UploadPage = ({ onUploadComplete }: UploadPageProps) => {
               )}
             </div>
           </div>
-          
+
           {uploadedFile && (
             <div className="mt-6 flex justify-center">
               <Button 
@@ -185,7 +238,6 @@ const UploadPage = ({ onUploadComplete }: UploadPageProps) => {
               >
                 Proceed
               </Button>
-
             </div>
           )}
         </CardContent>
@@ -194,11 +246,11 @@ const UploadPage = ({ onUploadComplete }: UploadPageProps) => {
       <div className="text-center">
         <div className="inline-flex items-center space-x-2 text-sm text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
           <AlertCircle className="h-4 w-4" />
-          <span>Your resume will be analyzed by our AI for personalized interview questions</span>
+          <span>This JD helps our AI tailor interview questions for your dream job.</span>
         </div>
       </div>
     </div>
   );
 };
 
-export default UploadPage;
+export default UploadJDPage;

@@ -7,7 +7,12 @@ import Index from "./pages/Index";
 import Upload from "./pages/Upload";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-
+import Interview from "./pages/Interview";
+import Login from "./pages/Login";
+import TextInterview from "./pages/TextInterview";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import ImproveResume from "./pages/ImproveResume";
+import InterviewDetails from "./pages/InterviewDetails";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -19,8 +24,12 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/upload" element={<Upload />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/interview" element={<Interview />} />
+          <Route path="/text-interview" element={<TextInterview />} />
+          <Route path="/confidence-score" element={<ImproveResume/>} />
+          <Route path="/interview-details/:_id" element={<InterviewDetails/>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

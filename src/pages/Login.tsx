@@ -1,12 +1,13 @@
 import { HeroSection } from "@/components/HeroSection";
-import { RegisterForm } from "@/components/RegisterForm";
+import { LoginForm } from "@/components/LoginForm";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
-const Index = () => {
-  const GoogleAuthWrapper = () => {
+const Login = () => {
+
+      const GoogleAuthWrapper = () => {
         return (
           <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-            <RegisterForm></RegisterForm>
+            <LoginForm></LoginForm>
           </GoogleOAuthProvider>
         );
       };
@@ -18,4 +19,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Login;
