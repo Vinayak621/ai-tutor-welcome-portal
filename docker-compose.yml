@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  react-vite-ts-app:
+    build: .
+    container_name: react-vite-ts-dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app                    
+      - /app/node_modules         
+      - /app/dist                 
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true  
+      - VITE_HMR_PORT=5173        
+    env_file:
+      - .env                      
+    stdin_open: true              
+    tty: true                     
+    restart: unless-stopped
+    networks:
+      - vite-network
+
+networks:
+  vite-network:
+    driver: bridge
