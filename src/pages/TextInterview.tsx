@@ -21,7 +21,13 @@ const TextInterview = () => {
     if (!resumeId) return;
 
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const wsUrl = `${protocol}://localhost:8000?resumeId=${resumeId}`;
+  let wsUrl: string;
+
+  if (window.location.hostname === "localhost") {
+    wsUrl = `${protocol}://localhost:8000?resumeId=${resumeId}`;
+  } else {
+    wsUrl = `${protocol}://${window.location.host}/ws/?resumeId=${resumeId}`;
+  }
     const socket = new WebSocket(wsUrl);
     socketRef.current = socket;
 
